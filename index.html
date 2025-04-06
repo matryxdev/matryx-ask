@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MATRYX ASK</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3867/3867580.png">
+    <meta name="theme-color" content="#0F172A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles and resets */
+        :root {
+            --primary-color: #3E54AC;
+            --primary-light: #7895CB;
+            --primary-glow: rgba(62, 84, 172, 0.7);
+            --secondary-color: #5B8FB9;
+            --accent-color: #03C988;
+            --dark-color: #1A2238;
+            --light-color: #fff;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.15);
+            --neon-glow: 0 0 10px var(--primary-glow), 0 0 20px var(--primary-glow);
+            --button-glow: 0 5px 15px rgba(62, 84, 172, 0.5);
+            --transition-normal: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --font-title: 'Montserrat', sans-serif;
+            --font-body: 'Montserrat', sans-serif;
+            --success-color: #03C988;
+            --error-color: #FF5C8D;
+            --warning-color: #FFC436;
+        }
+
+        html, body {
+            background-color: #000000;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        @supports (-webkit-overflow-scrolling: touch) {
+            body {
+                background-color: #0F172A;
+            }
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 34, 56, 0.5);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+            border-radius: 10px;
+            border: 2px solid rgba(26, 34, 56, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, var(--secondary-color), var(--primary-color));
+        }
+        
+        /* Firefox scrollbar */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) rgba(26, 34, 56, 0.5);
+        }
+        
+        body {
+            overflow-x: hidden;
+            overflow-y: auto;
+            background: radial-gradient(circle at center, #0F172A 0%, #060d1b 100%);
+            color: var(--light-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 2rem 1rem 5rem;
+            font-family: var(--font-body);
+            position: relative;
+            touch-action: manipulation;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 40%, rgba(62, 84, 172, 0.1), transparent 20%),
+                radial-gradient(circle at 85% 20%, rgba(91, 143, 185, 0.1), transparent 25%),
+                radial-gradient(circle at 50% 70%, rgba(3, 201, 136, 0.1), transparent 30%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .title {
+            font-family: var(--font-title);
+            font-size: clamp(3rem, 9vw, 5rem);
+            font-weight: 700;
+            margin-top: 1rem;
+            margin-bottom: 2.5rem;
+            color: var(--light-color);
+            text-shadow: 0 0 20px rgba(62, 84, 172, 0.8), 0 0 30px rgba(62, 84, 172, 0.6);
+            text-align: center;
+            letter-spacing: 4px;
+            background: linear-gradient(to right, #5B8FB9, #3E54AC, #03C988);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: gradientText 5s ease infinite;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 10;
+        }
+        
+        @keyframes gradientText {
+            0% { background-position: 0% center; }
+            50% { background-position: 100% center; }
+            100% { background-position: 0% center; }
+        }
+        
+        @keyframes textGlow {
+            0% { text-shadow: 0 0 10px rgba(62, 84, 172, 0.5); }
+            100% { text-shadow: 0 0 20px rgba(62, 84, 172, 0.8), 0 0 30px rgba(62, 84, 172, 0.6); }
+        }
+        
+        .card {
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+            align-items: center;
+            max-width: 600px;
+            width: 100%;
+            padding: min(2.5rem, 6vw);
+            background-color: rgba(23, 33, 55, 0.75);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(255, 255, 255, 0.05);
+            transition: var(--transition-normal);
+            animation: fadeIn 2s ease-in-out;
+            position: relative;
+            overflow: visible;
+            margin-bottom: 2rem;
+            z-index: 10;
+        }
+        
+        .card::before, .card::after {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                transparent 0%,
+                var(--primary-color) 10%,
+                transparent 40%,
+                var(--secondary-color) 50%,
+                transparent 60%,
+                var(--accent-color) 80%,
+                transparent 100%
+            );
+            animation: rotate 8s linear infinite;
+            z-index: -1;
+            border-radius: 30%;
+            opacity: 0.15;
+        }
+        
+        .card::before {
+            top: -25%;
+            left: -25%;
+        }
+        
+        .card::after {
+            bottom: -25%;
+            right: -25%;
+            animation-direction: reverse;
+            animation-duration: 12s;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Inputs and form styling */
+        .name-inputs, .question-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        
+        .input-label {
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            font-weight: 500;
+            color: var(--light-color);
+            opacity: 0.9;
+        }
+        
+        .name-input, .question-input {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            font-size: 1rem;
+            font-family: var(--font-body);
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            transition: var(--transition-normal);
+            height: 50px;
+            box-sizing: border-box;
+        }
+        
+        .name-input:focus, .question-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(62, 84, 172, 0.2);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .name-input::placeholder, .question-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .options-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .option-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        .option-input {
+            flex: 1;
+            padding: min(0.9rem, 4vw) min(1.2rem, 4vw);
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            font-family: var(--font-body);
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            transition: var(--transition-normal);
+        }
+        
+        .option-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(62, 84, 172, 0.2);
+        }
+        
+        .option-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .remove-option {
+            background: rgba(255, 92, 141, 0.2);
+            border: 1px solid rgba(255, 92, 141, 0.3);
+            color: white;
+            width: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .remove-option:hover {
+            background: rgba(255, 92, 141, 0.3);
+        }
+        
+        .add-option-btn {
+            padding: 10px;
+            background: rgba(3, 201, 136, 0.2);
+            border: 1px solid rgba(3, 201, 136, 0.3);
+            color: white;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        
+        .add-option-btn:hover {
+            background: rgba(3, 201, 136, 0.3);
+        }
+        
+        /* Buttons */
+        .create-link-btn {
+            width: 100%;
+            padding: min(1.2rem, 5vw) min(2.5rem, 7vw);
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            font-family: var(--font-body);
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            box-shadow: var(--button-glow);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            margin-bottom: 20px;
+        }
+        
+        .create-link-btn:hover, .create-link-btn:focus {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 25px rgba(62, 84, 172, 0.6);
+        }
+        
+        .create-link-btn:active {
+            transform: translateY(-2px);
+        }
+        
+        .create-link-btn:disabled {
+            opacity: 0.7;
+            transform: none;
+            cursor: not-allowed;
+        }
+        
+        .create-link-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: 0.5s;
+        }
+        
+        .create-link-btn:not(:disabled):hover::before {
+            left: 100%;
+        }
+        
+        /* Option buttons for responder */
+        .option-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+        }
+        
+        .option-btn {
+            padding: min(1.2rem, 5vw);
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            font-family: var(--font-body);
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            box-shadow: 0 5px 15px rgba(62, 84, 172, 0.4);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        .option-btn:hover, .option-btn:focus {
+            transform: translateY(-5px);
+            filter: brightness(1.1);
+            box-shadow: 0 10px 20px rgba(62, 84, 172, 0.5);
+        }
+        
+        /* Share link */
+        .share-link {
+            margin-top: 1rem;
+            padding: min(1.2rem, 4vw);
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: clamp(0.8rem, 3vw, 1rem);
+            font-family: var(--font-body);
+            text-align: center;
+            transition: var(--transition-normal);
+        }
+        
+        .share-link:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+        
+        .copy-btn {
+            margin-top: 1rem;
+            padding: min(0.8rem, 3vw) min(1.5rem, 5vw);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            color: white;
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            cursor: pointer;
+            transition: var(--transition-normal);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        .copy-btn:hover, .copy-btn:focus {
+            background-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+        }
+        
+        /* Utility classes */
+        .hidden {
+            display: none !important;
+        }
+        
+        .instructions {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            line-height: 1.6;
+            opacity: 0.9;
+            font-family: var(--font-body);
+            max-width: 85%;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .validation-message {
+            color: var(--error-color);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            visibility: hidden;
+            opacity: 0;
+            transition: var(--transition-normal);
+        }
+        
+        .validation-message.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Result view styling */
+        .result-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2rem;
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .result-message {
+            font-size: clamp(1.3rem, 5vw, 2rem);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 1s ease;
+        }
+        
+        .result-card {
+            width: 100%;
+            max-width: 500px;
+            padding: min(2.5rem, 6vw);
+            background: linear-gradient(135deg, rgba(62, 84, 172, 0.25) 0%, rgba(91, 143, 185, 0.25) 100%);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 
+                        inset 0 0 25px rgba(255, 255, 255, 0.08),
+                        0 0 15px rgba(62, 84, 172, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 15%, rgba(62, 84, 172, 0.3), transparent 30%),
+                radial-gradient(circle at 85% 25%, rgba(91, 143, 185, 0.3), transparent 30%),
+                radial-gradient(circle at 50% 85%, rgba(3, 201, 136, 0.3), transparent 35%);
+            pointer-events: none;
+        }
+        
+        .result-card-title {
+            font-family: var(--font-title);
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
+            margin-bottom: 0.8rem;
+            color: white;
+            text-shadow: 0 0 10px rgba(62, 84, 172, 0.7);
+            font-weight: 700;
+            background: linear-gradient(to right, #5B8FB9, #3E54AC, #03C988);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: gradientText 5s ease infinite;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .names-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.2rem, 4vw, 1.6rem);
+            font-weight: 700;
+            color: white;
+            margin: 0.8rem 0;
+            text-shadow: 0 0 10px rgba(62, 84, 172, 0.5);
+            position: relative;
+            z-index: 1;
+            gap: 15px;
+        }
+        
+        .divider {
+            width: 80%;
+            height: 1px;
+            margin: 0.5rem 0 1.5rem;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .divider::before, .divider::after {
+            content: '';
+            height: 1px;
+            flex-grow: 1;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+        }
+        
+        .divider-icon {
+            font-size: 1.2rem;
+            margin: 0 10px;
+            color: var(--accent-color);
+            filter: drop-shadow(0 0 5px rgba(3, 201, 136, 0.5));
+        }
+        
+        .result-card-message {
+            font-size: clamp(1.1rem, 4vw, 1.6rem);
+            margin-bottom: 1.2rem;
+            color: white;
+            text-align: center;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .question-display {
+            font-size: clamp(1.3rem, 4.5vw, 1.8rem);
+            color: white;
+            text-shadow: 0 0 10px rgba(91, 143, 185, 0.6);
+            margin: 15px 0;
+            padding: 10px;
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+            font-weight: 700;
+        }
+        
+        .answer-display {
+            font-size: clamp(1.2rem, 5vw, 2rem);
+            font-weight: 700;
+            margin-top: 15px;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .action-btn {
+            padding: min(1rem, 4vw) min(2rem, 6vw);
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            font-family: var(--font-body);
+            font-weight: 600;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: 0.5s;
+        }
+        
+        .action-btn:hover::before, .action-btn:focus::before {
+            left: 100%;
+        }
+        
+        .download-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            box-shadow: var(--button-glow);
+        }
+        
+        .download-btn:hover, .download-btn:focus {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(62, 84, 172, 0.6);
+        }
+        
+        .new-link-btn {
+            background: linear-gradient(45deg, #7e57c2, #b388ff);
+            box-shadow: 0 5px 15px rgba(126, 87, 194, 0.4);
+        }
+        
+        .new-link-btn:hover, .new-link-btn:focus {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(126, 87, 194, 0.5);
+        }
+        
+        .result-card-logo {
+            font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+            opacity: 0.6;
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-family: var(--font-title);
+            text-shadow: 0 0 5px rgba(62, 84, 172, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 1;
+        }
+        
+        /* Animations and effects */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite ease-in-out;
+        }
+        
+        .glow-effect {
+            position: relative;
+        }
+        
+        .glow-effect::after {
+            content: "";
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            z-index: -1;
+            background: radial-gradient(circle at center, var(--primary-color) 0%, transparent 70%);
+            opacity: 0.2;
+            filter: blur(20px);
+            animation: glowPulse 4s infinite alternate;
+        }
+        
+        @keyframes glowPulse {
+            0% { opacity: 0.1; }
+            100% { opacity: 0.3; }
+        }
+        
+        /* Footer with credit */
+        .footer {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: var(--font-body);
+            z-index: 1;
+        }
+        
+        .footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition-normal);
+            position: relative;
+        }
+        
+        .footer a:hover, .footer a:focus {
+            color: var(--accent-color);
+            text-shadow: 0 0 8px rgba(3, 201, 136, 0.5);
+        }
+        
+        .footer a::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            bottom: -2px;
+            left: 0;
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .footer a:hover::after, .footer a:focus::after {
+            transform: scaleX(1);
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .title {
+                margin-bottom: 1.5rem;
+                font-size: clamp(2.5rem, 8vw, 4rem);
+            }
+            
+            .card {
+                padding: 1.8rem;
+                gap: 1.5rem;
+                margin-left: 0.5rem;
+                margin-right: 0.5rem;
+                width: calc(100% - 1rem);
+            }
+            
+            .option-buttons {
+                width: 100%;
+            }
+            
+            .action-btn {
+                width: 100%;
+            }
+            
+            /* Adjust result card padding */
+            .result-card {
+                padding: 2rem 1.2rem;
+            }
+            
+            /* Reduce particle count for better mobile performance */
+            .particle-reduce {
+                opacity: 0.5;
+            }
+        }
+        
+        /* Small screen optimizations */
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem 0.5rem 4rem;
+            }
+            
+            .title {
+                margin-top: 0.5rem;
+                margin-bottom: 1.5rem;
+                font-size: clamp(2rem, 7vw, 3rem);
+            }
+            
+            .card {
+                padding: 1.5rem;
+                gap: 1.2rem;
+                border-radius: 16px;
+            }
+            
+            .instructions {
+                max-width: 100%;
+                margin-bottom: 1rem;
+                font-size: 0.95rem;
+            }
+            
+            .result-container {
+                margin-top: 1rem;
+            }
+            
+            .result-card {
+                padding: 1.5rem 1rem;
+            }
+            
+            .divider {
+                width: 90%;
+            }
+            
+            /* Further reduce particles for very small screens */
+            .particle-reduce {
+                opacity: 0.3;
+            }
+            
+            .option-group {
+                flex-direction: column;
+            }
+            
+            .remove-option {
+                width: 100%;
+                height: 40px;
+            }
+            
+            .name-input, .question-input {
+                height: 45px;
+                font-size: 0.95rem;
+            }
+            
+            .input-label {
+                font-size: 0.95rem;
+            }
+        }
+        
+        /* iPhone SE and smaller devices */
+        @media (max-width: 375px) {
+            .title {
+                font-size: 1.8rem;
+                margin-bottom: 1rem;
+            }
+            
+            .card {
+                padding: 1.2rem;
+                gap: 1rem;
+            }
+            
+            .instructions {
+                font-size: 0.9rem;
+                margin-bottom: 0.8rem;
+            }
+            
+            .input-label {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Ensure touch targets are big enough */
+        @media (pointer: coarse) {
+            .create-link-btn, .option-btn, .action-btn, .copy-btn {
+                min-height: 44px;
+                padding-top: min(1.2rem, 3vw);
+                padding-bottom: min(1.2rem, 3vw);
+            }
+            
+            .name-input, .question-input, .option-input {
+                min-height: 44px;
+            }
+        }
+        
+        /* Reduce motion for users who prefer it */
+        @media (prefers-reduced-motion) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <h1 class="title">MATRYX ASK</h1>
+    
+    <!-- Creator View -->
+    <div id="creator-view" class="card glow-effect">
+        <p class="instructions">Create a custom question, share the link, and see their answer. Perfect for asking anything you're curious about!</p>
+        
+        <div class="name-inputs">
+            <div class="input-group">
+                <label class="input-label" for="sender-name">Your name</label>
+                <input type="text" id="sender-name" class="name-input" placeholder="Enter your name" maxlength="30">
+            </div>
+            <div class="input-group">
+                <label class="input-label" for="recipient-name">Recipient's name</label>
+                <input type="text" id="recipient-name" class="name-input" placeholder="Enter their name" maxlength="30">
+            </div>
+        </div>
+        
+        <div class="question-inputs">
+            <div class="input-group">
+                <label class="input-label" for="custom-question">Your question</label>
+                <input type="text" id="custom-question" class="question-input" placeholder="What do you want to ask?" maxlength="100">
+            </div>
+            
+            <label class="input-label">Answer options</label>
+            <div class="options-container" id="options-container">
+                <div class="option-group">
+                    <input type="text" class="option-input" placeholder="Option 1" maxlength="30">
+                </div>
+                <div class="option-group">
+                    <input type="text" class="option-input" placeholder="Option 2" maxlength="30">
+                </div>
+            </div>
+            
+            <button id="add-option-btn" class="add-option-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                Add another option
+            </button>
+        </div>
+        
+        <p id="validation-message" class="validation-message">Please fill in all fields to continue</p>
+        
+        <button id="create-link-btn" class="create-link-btn" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+            Create Share Link
+        </button>
+        
+        <input type="text" class="share-link hidden" readonly>
+        <button class="copy-btn hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy Link
+        </button>
+    </div>
+    
+    <!-- Responder View -->
+    <div id="responder-view" class="card glow-effect hidden">
+        <p class="instructions pulse" id="responder-message"></p>
+        <div class="option-buttons" id="option-buttons">
+            <!-- Options will be generated dynamically -->
+        </div>
+    </div>
+    
+    <!-- Result View -->
+    <div id="result-view" class="hidden">
+        <div class="result-container">
+            <h2 class="result-message" id="result-message"></h2>
+            <div id="result-card" class="result-card">
+                <h3 class="result-card-title">MATRYX ASK</h3>
+                
+                <div class="names-display">
+                    <span class="sender-name-display"></span>
+                    <span>➡️</span>
+                    <span class="recipient-name-display"></span>
+                </div>
+                
+                <div class="divider">
+                    <span class="divider-icon">❓</span>
+                </div>
+                
+                <div class="result-card-message" id="result-card-message"></div>
+                
+                <div class="result-card-logo">matryx-ask.vercel.app</div>
+            </div>
+            <button class="action-btn download-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download Image
+            </button>
+            <button class="action-btn new-link-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                Create New Question
+            </button>
+        </div>
+    </div>
+    
+    <canvas id="canvas-result" width="500" height="350"></canvas>
+    
+    <!-- Footer with credit -->
+    <footer class="footer">
+        <p>Developed by <a href="https://cristian-lapusan.fr" target="_blank" rel="noopener noreferrer">Cristian Lapusan</a></p>
+    </footer>
+    
+    <script>
+        // Fix viewport scaling issues on mobile
+        function resetViewport() {
+            const viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+            }
+        }
+        resetViewport();
+        
+        // URL parameter handling
+        const urlParams = new URLSearchParams(window.location.search);
+        const questionParam = urlParams.get('q');
+        const optionsParam = urlParams.get('options');
+        const responseParam = urlParams.get('response');
+        const senderParam = urlParams.get('sender');
+        const recipientParam = urlParams.get('recipient');
+        
+        // Elements
+        const body = document.body;
+        const creatorView = document.getElementById('creator-view');
+        const responderView = document.getElementById('responder-view');
+        const resultView = document.getElementById('result-view');
+        const responderMessage = document.getElementById('responder-message');
+        const optionButtons = document.getElementById('option-buttons');
+        const resultMessage = document.getElementById('result-message');
+        const resultCardMessage = document.getElementById('result-card-message');
+        const shareLink = document.querySelector('.share-link');
+        const copyBtn = document.querySelector('.copy-btn');
+        const downloadBtn = document.querySelector('.download-btn');
+        const newLinkBtn = document.querySelector('.new-link-btn');
+        const resultCard = document.getElementById('result-card');
+        const senderNameInput = document.getElementById('sender-name');
+        const recipientNameInput = document.getElementById('recipient-name');
+        const customQuestionInput = document.getElementById('custom-question');
+        const validationMessage = document.getElementById('validation-message');
+        const createLinkBtn = document.getElementById('create-link-btn');
+        const addOptionBtn = document.getElementById('add-option-btn');
+        const optionsContainer = document.getElementById('options-container');
+        const senderNameDisplay = document.querySelector('.sender-name-display');
+        const recipientNameDisplay = document.querySelector('.recipient-name-display');
+        
+        // Detect mobile for performance optimization
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        
+        // Three.js setup
+        const canvas = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ 
+            antialias: !isMobile, // Disable antialiasing on mobile for better performance
+            alpha: true 
+        });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+        canvas.appendChild(renderer.domElement);
+        
+        camera.position.z = 5;
+        
+        // Create particles for atmosphere - reduce count on mobile
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = isMobile ? 1500 : 3000; // Reduced for mobile
+        
+        const posArray = new Float32Array(particlesCount * 3);
+        const colors = new Float32Array(particlesCount * 3);
+        const sizes = new Float32Array(particlesCount);
+        
+        for(let i = 0; i < particlesCount * 3; i += 3) {
+            // Position - more spread out
+            posArray[i] = (Math.random() - 0.5) * 30;
+            posArray[i+1] = (Math.random() - 0.5) * 30;
+            posArray[i+2] = (Math.random() - 0.5) * 30;
+            
+            // Vary sizes for more depth - smaller on mobile
+            sizes[i/3] = Math.random() * (isMobile ? 0.02 : 0.03) + (isMobile ? 0.005 : 0.01);
+            
+            // Color palette - blues, purples, and teals
+            const colorChoice = Math.random();
+            if (colorChoice < 0.4) {
+                // Blues
+                colors[i] = Math.random() * 0.1; // R (very little red)
+                colors[i+1] = Math.random() * 0.3 + 0.2; // G (some green)
+                colors[i+2] = Math.random() * 0.4 + 0.6; // B (lots of blue)
+            } else if (colorChoice < 0.7) {
+                // Purples
+                colors[i] = Math.random() * 0.3 + 0.1; // R (some red)
+                colors[i+1] = 0.1; // G (little green)
+                colors[i+2] = Math.random() * 0.4 + 0.5; // B (lots of blue)
+            } else {
+                // Teals/Cyans
+                colors[i] = 0; // R (no red)
+                colors[i+1] = Math.random() * 0.4 + 0.6; // G (lots of green)
+                colors[i+2] = Math.random() * 0.3 + 0.7; // B (lots of blue)
+            }
+        }
+        
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        particlesGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+        
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: isMobile ? 0.02 : 0.03,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            sizeAttenuation: true,
+        });
+        
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+        
+        // Animation loop - slower update for mobile
+        const rotationSpeed = isMobile ? 0.5 : 1;
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            particlesMesh.rotation.y += 0.0003 * rotationSpeed;
+            particlesMesh.rotation.x += 0.0002 * rotationSpeed;
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Handle window resize efficiently
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            // Debounce resize for better performance
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const newWidth = window.innerWidth;
+                const newHeight = window.innerHeight;
+                
+                camera.aspect = newWidth / newHeight;
+                camera.updateProjectionMatrix();
+                
+                renderer.setSize(newWidth, newHeight);
+            }, 250);
+        });
+        
+        // Function to add a new option field
+        function addOptionField() {
+            const optionGroups = optionsContainer.querySelectorAll('.option-group');
+            
+            // Limit to max 6 options
+            if (optionGroups.length >= 6) {
+                alert('Maximum 6 options allowed');
+                return;
+            }
+            
+            const newGroup = document.createElement('div');
+            newGroup.className = 'option-group';
+            
+            const newInput = document.createElement('input');
+            newInput.type = 'text';
+            newInput.className = 'option-input';
+            newInput.placeholder = `Option ${optionGroups.length + 1}`;
+            newInput.maxLength = 30;
+            newInput.addEventListener('input', validateForm);
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-option';
+            removeBtn.innerHTML = '✖';
+            removeBtn.addEventListener('click', function() {
+                newGroup.remove();
+                updateOptionPlaceholders();
+                validateForm();
+            });
+            
+            newGroup.appendChild(newInput);
+            newGroup.appendChild(removeBtn);
+            optionsContainer.appendChild(newGroup);
+            
+            // Focus the new input
+            newInput.focus();
+            
+            validateForm();
+        }
+        
+        // Update option placeholders to keep them in sequence
+        function updateOptionPlaceholders() {
+            const optionInputs = optionsContainer.querySelectorAll('.option-input');
+            optionInputs.forEach((input, index) => {
+                input.placeholder = `Option ${index + 1}`;
+            });
+        }
+        
+        // Add event listener to the add option button
+        addOptionBtn.addEventListener('click', addOptionField);
+        
+        // Add remove buttons to the initial options
+        document.querySelectorAll('.option-group').forEach((group, index) => {
+            // Don't add remove buttons if we only have 2 options (minimum required)
+            if (index >= 2 || document.querySelectorAll('.option-group').length > 2) {
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-option';
+                removeBtn.innerHTML = '✖';
+                removeBtn.addEventListener('click', function() {
+                    // Don't allow removing if only 2 options remain
+                    if (document.querySelectorAll('.option-group').length <= 2) {
+                        alert('Minimum 2 options required');
+                        return;
+                    }
+                    group.remove();
+                    updateOptionPlaceholders();
+                    validateForm();
+                });
+                group.appendChild(removeBtn);
+            }
+        });
+        
+        // Validation function
+        function validateForm() {
+            const senderName = senderNameInput.value.trim();
+            const recipientName = recipientNameInput.value.trim();
+            const customQuestion = customQuestionInput.value.trim();
+            const optionInputs = document.querySelectorAll('.option-input');
+            
+            let allOptionsFilled = true;
+            optionInputs.forEach(input => {
+                if (input.value.trim() === '') {
+                    allOptionsFilled = false;
+                }
+            });
+            
+            if (senderName && recipientName && customQuestion && allOptionsFilled) {
+                createLinkBtn.disabled = false;
+                validationMessage.classList.remove('show');
+                return true;
+            } else {
+                createLinkBtn.disabled = true;
+                validationMessage.classList.add('show');
+                return false;
+            }
+        }
+        
+        // Input event listeners
+        senderNameInput.addEventListener('input', validateForm);
+        recipientNameInput.addEventListener('input', validateForm);
+        customQuestionInput.addEventListener('input', validateForm);
+        document.querySelectorAll('.option-input').forEach(input => {
+            input.addEventListener('input', validateForm);
+        });
+        
+        // Function to generate shareable image
+        function generateImage() {
+            html2canvas(resultCard).then(canvas => {
+                const image = canvas.toDataURL('image/png');
+                
+                // Set up download
+                downloadBtn.addEventListener('click', () => {
+                    const a = document.createElement('a');
+                    a.href = image;
+                    a.download = 'matryx-ask-result.png';
+                    a.click();
+                });
+            });
+        }
+        
+        // Mobile-friendly clipboard handling
+        function copyToClipboard(text) {
+            // Modern clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text)
+                    .then(() => true)
+                    .catch(() => {
+                        // Fallback to older method if permission denied
+                        return legacyCopyToClipboard(text);
+                    });
+            }
+            // Fallback for older browsers
+            return Promise.resolve(legacyCopyToClipboard(text));
+        }
+        
+        function legacyCopyToClipboard(text) {
+            const input = shareLink;
+            input.select();
+            input.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                return document.execCommand('copy');
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                return false;
+            }
+        }
+        
+        // Encode text for URL
+        function encodeForUrl(text) {
+            return encodeURIComponent(text.trim());
+        }
+        
+        // Handle create link button
+        createLinkBtn.addEventListener('click', () => {
+            if (!validateForm()) return;
+            
+            const senderName = encodeForUrl(senderNameInput.value);
+            const recipientName = encodeForUrl(recipientNameInput.value);
+            const question = encodeForUrl(customQuestionInput.value);
+            
+            // Get all options
+            const options = [];
+            document.querySelectorAll('.option-input').forEach(input => {
+                options.push(encodeForUrl(input.value));
+            });
+            
+            const optionsString = options.join('|');
+            
+            const link = `${window.location.origin}${window.location.pathname}?q=${question}&options=${optionsString}&sender=${senderName}&recipient=${recipientName}`;
+            
+            // Show share link and copy button
+            shareLink.value = link;
+            shareLink.classList.remove('hidden');
+            copyBtn.classList.remove('hidden');
+            
+            // Add pulses/animations
+            createLinkBtn.classList.add('pulse');
+            setTimeout(() => {
+                createLinkBtn.classList.remove('pulse');
+            }, 2000);
+        });
+        
+        // Copy link button
+        copyBtn.addEventListener('click', () => {
+            copyToClipboard(shareLink.value).then(success => {
+                // Show feedback
+                copyBtn.innerHTML = success ? 
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Copied!` : 
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Tap to select`;
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy Link
+                    `;
+                }, 2000);
+            });
+        });
+        
+        // Add tap to select for mobile
+        shareLink.addEventListener('click', function() {
+            this.select();
+            this.setSelectionRange(0, 99999);
+        });
+        
+        // Check the URL parameters to determine the view
+        if (questionParam && optionsParam && !responseParam && senderParam && recipientParam) {
+            // Responder view
+            creatorView.classList.add('hidden');
+            responderView.classList.remove('hidden');
+            
+            // Decode parameters
+            const question = decodeURIComponent(questionParam);
+            const options = decodeURIComponent(optionsParam).split('|');
+            const senderName = decodeURIComponent(senderParam);
+            const recipientName = decodeURIComponent(recipientParam);
+            
+            // Set the question message with sender's name
+            responderMessage.innerHTML = `${senderName} is asking you:<br><span style="font-size: 1.4em; display: block; margin: 15px 0; font-weight: 600;">"${question}"</span>`;
+            
+            // Create option buttons dynamically
+            optionButtons.innerHTML = '';
+            options.forEach((option, index) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-btn';
+                optionBtn.textContent = option;
+                
+                // Add gradient colors based on index
+                const hue1 = 200 + (index * 30) % 160; // Cycle through blue-green-teal
+                const hue2 = (hue1 + 30) % 360;
+                optionBtn.style.background = `linear-gradient(45deg, hsl(${hue1}, 70%, 50%), hsl(${hue2}, 70%, 55%))`;
+                
+                optionBtn.addEventListener('click', () => {
+                    // Animate before redirecting
+                    optionBtn.classList.add('pulse');
+                    
+                    setTimeout(() => {
+                        window.location.href = `${window.location.origin}${window.location.pathname}?q=${questionParam}&options=${optionsParam}&response=${index}&sender=${senderParam}&recipient=${recipientParam}`;
+                    }, 800);
+                });
+                
+                optionButtons.appendChild(optionBtn);
+            });
+            
+        } else if (questionParam && optionsParam && responseParam !== null && senderParam && recipientParam) {
+            // Result view
+            creatorView.classList.add('hidden');
+            responderView.classList.add('hidden');
+            resultView.classList.remove('hidden');
+            
+            // Decode parameters
+            const question = decodeURIComponent(questionParam);
+            const options = decodeURIComponent(optionsParam).split('|');
+            const responseIndex = parseInt(responseParam);
+            const response = options[responseIndex];
+            const senderName = decodeURIComponent(senderParam);
+            const recipientName = decodeURIComponent(recipientParam);
+            
+            // Set names in the display
+            senderNameDisplay.textContent = senderName;
+            recipientNameDisplay.textContent = recipientName;
+            
+            // Set personalized result message
+            resultMessage.textContent = `${recipientName} answered ${senderName}'s question!`;
+            
+            // Enhanced result card message
+            resultCardMessage.innerHTML = `
+                <div>Question:</div>
+                <div class="question-display">"${question}"</div>
+                <div>Answer:</div>
+                <div class="answer-display">
+                    ${response}
+                </div>
+            `;
+            
+            // Generate shareable image
+            generateImage();
+            
+            // New link button
+            newLinkBtn.addEventListener('click', () => {
+                window.location.href = window.location.origin + window.location.pathname;
+            });
+        }
+        
+        // Add passive touch events for better mobile performance
+        document.addEventListener('touchstart', function(){}, {passive: true});
+        document.addEventListener('touchmove', function(){}, {passive: true});
+        
+        // Reduce particle animation on mobile when scrolling for better performance
+        let scrollTimeout;
+        window.addEventListener('scroll', function() {
+            if (isMobile) {
+                particlesMesh.visible = false;
+                
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(function() {
+                    particlesMesh.visible = true;
+                }, 200);
+            }
+        }, {passive: true});
+    </script>
+</body>
+</html>
